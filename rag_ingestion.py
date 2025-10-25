@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 from typing import List
 
-BASE_DIR = Path("../")
+BASE_DIR = Path("../knowledge/")
 IGNORE_DIRS = {".git", ".github", ".DS_Store", "__pycache__"}
 
 def setup_logger():
