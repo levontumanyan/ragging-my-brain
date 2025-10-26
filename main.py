@@ -1,6 +1,8 @@
 import logging
 import time
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
 from scan_and_hash import (
 	create_data_dir,
@@ -19,8 +21,10 @@ def setup_logger():
 		datefmt="%Y-%m-%d %H:%M:%S",
 	)
 
-BASE_DIR = Path("../knowledge/")
+load_dotenv()
 logger = logging.getLogger(__name__)
+KNOWLEDGE_BASE_DIR = Path(os.getenv("KNOWLEDGE_BASE_DIR"))
+IGNORE_DIRS = set(os.getenv("IGNORE_DIRS", "").split(","))
 
 def main():
 	# start timer
@@ -43,14 +47,14 @@ def main():
 	# create an array that will store files to be processed (hash has changed)
 	mds_to_process = []
 
-	md_files = retrieve_md_filenames(BASE_DIR)
+	md_files = retrieve_md_filenames(KNOWLEDGE_BASE_DIR, IGNORE_DIRS)
 
 	for md_file in md_files:
 		# compute the md5 hash of the md file
 		current_md_hash = hash_md_file(md_file)
 		
 		# this returns a path without the ../ as a string
-		md_relative_path = str(md_file.relative_to(BASE_DIR))
+		md_relative_path = str(md_file.relative_to(KNOWLEDGE_BASE_DIR))
 
 		if needs_processing(md_relative_path, current_md_hash, metadata):
 			mds_to_process.append(md_file)

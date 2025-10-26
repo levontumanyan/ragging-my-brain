@@ -5,18 +5,18 @@ import hashlib
 import json
 from pathlib import Path
 from typing import List
-
-IGNORE_DIRS = {".git", ".github", ".DS_Store", "__pycache__"}
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
 # retrieve all the md filenames while ignoring irrelevant directories
-def retrieve_md_filenames(base_dir: Path) -> List[Path]:
+def retrieve_md_filenames(base_dir: Path, ignore_dirs: set) -> List[Path]:
+	logger.info(f"Ignoring directories: {ignore_dirs}")
 	md_files = []
 
 	for root, dirs, files in os.walk(base_dir):
 		# remove ignored dirs from traversal
-		dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+		dirs[:] = [d for d in dirs if d not in ignore_dirs]
 		for file in files:
 			if file.endswith(".md"):
 				md_files.append(Path(root) / file)
