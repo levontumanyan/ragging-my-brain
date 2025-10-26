@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from pathlib import Path
-from rag_ingestion import retrieve_md_filenames, hash_md_file
+from scan_and_hash import retrieve_md_filenames, hash_md_file
 
 class TestRetrieveMdFilenames(unittest.TestCase):
 	def setUp(self):

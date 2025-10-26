@@ -1,0 +1,77 @@
+import logging
+import time
+from pathlib import Path
+
+from scan_and_hash import (
+	create_data_dir,
+	create_metadata_file,
+	load_metadata_json,
+	retrieve_md_filenames,
+	hash_md_file,
+	needs_processing,
+	save_metadata_json
+)
+
+def setup_logger():
+	logging.basicConfig(
+		level=logging.INFO,
+		format="%(asctime)s [%(levelname)s] %(message)s",
+		datefmt="%Y-%m-%d %H:%M:%S",
+	)
+
+BASE_DIR = Path("../knowledge/")
+logger = logging.getLogger(__name__)
+
+def main():
+	# start timer
+	start_time = time.perf_counter()
+
+	# start logger
+	setup_logger()
+
+	logger.info('Rag pipeline started')
+
+	# create a path object to data dir
+	data_dir = create_data_dir()
+
+	# create or check metadata.json exists
+	metadata_file = create_metadata_file(data_dir)
+
+	# get the dict with metadata
+	metadata = load_metadata_json(metadata_file)
+
+	# create an array that will store files to be processed (hash has changed)
+	mds_to_process = []
+
+	md_files = retrieve_md_filenames(BASE_DIR)
+
+	for md_file in md_files:
+		# compute the md5 hash of the md file
+		current_md_hash = hash_md_file(md_file)
+		
+		# this returns a path without the ../ as a string
+		md_relative_path = str(md_file.relative_to(BASE_DIR))
+
+		if needs_processing(md_relative_path, current_md_hash, metadata):
+			mds_to_process.append(md_file)
+
+	# write these hashes to the metadata.json file from metadata dict
+	try:
+		save_metadata_json(metadata_file, metadata)
+
+	except Exception as e:
+		logger.error(f"❌ Fatal error: {e}")
+		# stop main()
+		return
+	
+	for md_file in md_files:
+		pass
+
+	# end timer, count relapsed time
+	end_time = time.perf_counter()
+	elapsed = end_time - start_time
+	logger.info(f'Rag pipeline completed successfully in {elapsed:.9f} seconds.')
+
+# --- entry point ---
+if __name__ == "__main__":
+	main()

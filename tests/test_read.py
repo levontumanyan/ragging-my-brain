@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from pathlib import Path
-from rag_ingestion import read_md_file
+from scan_and_hash import read_md_file
 
 class TestReadingFiles(unittest.TestCase):
 	def setUp(self):
