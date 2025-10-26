@@ -14,6 +14,11 @@ from scan_and_hash import (
 	save_metadata_json
 )
 
+from read_and_chunk import (
+	read_md_files,
+	chunk_all_texts
+)
+
 def setup_logger():
 	logging.basicConfig(
 		level=logging.INFO,
@@ -68,8 +73,11 @@ def main():
 		# stop main()
 		return
 	
-	for md_file in md_files:
-		pass
+	# read md files here
+	contents = read_md_files(mds_to_process)
+	
+	# chunk all the mds
+	all_chunks = chunk_all_texts(contents)
 
 	# end timer, count relapsed time
 	end_time = time.perf_counter()

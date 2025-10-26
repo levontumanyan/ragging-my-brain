@@ -62,7 +62,7 @@ def load_metadata_json(metadata_file) -> dict:
 
 	return metadata
 
-# for a markdown file receive the path, it's current hash and the metadata dict. compare current hash with the old one(if exists) and if hash has changed update the dict and return True
+# for a markdown file receive the path, it's current hash and the metadata dict. compare current hash with the old one(if exists) and if hash has changed or it is a new file update the dict and return True
 def needs_processing(md_relative_path: str, current_md_hash: str, metadata: dict) -> bool:
 	if md_relative_path in metadata:
 		if metadata[md_relative_path] != current_md_hash:
@@ -81,18 +81,6 @@ def save_metadata_json(metadata_file: Path, metadata: dict) -> None:
 	except (OSError, json.JSONDecodeError) as e:
 		logger.error(f"Error saving metadata to {metadata_file}: {e}")
 
-def read_md_file(md_file: Path) -> str:
-	"""
-	Read a markdown file and return its content as a string.
-	"""
-	try:
-		with md_file.open("r", encoding="utf-8") as f:
-			content = f.read()
-		return content
-	except Exception as e:
-		logger.error(f"Error reading {md_file}: {e}")
-		return ""
-		
 def preprocess_md_content(content: str) -> str:
 	"""
 	TODO
