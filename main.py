@@ -19,6 +19,10 @@ from read_and_chunk import (
 	chunk_all_texts
 )
 
+from embed_and_store import (
+	generate_embeddings
+)
+
 def setup_logger():
 	logging.basicConfig(
 		level=logging.INFO,
@@ -72,12 +76,15 @@ def main():
 		logger.error(f"❌ Fatal error: {e}")
 		# stop main()
 		return
-	
+
 	# read md files here
 	contents = read_md_files(mds_to_process)
 	
 	# chunk all the mds
 	all_chunks = chunk_all_texts(contents)
+
+	# return embeddings
+	#embeddings = generate_embeddings(all_chunks)
 
 	# end timer, count relapsed time
 	end_time = time.perf_counter()
