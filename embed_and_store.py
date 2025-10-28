@@ -39,5 +39,3 @@ def store_embeddings(embeddings: np.ndarray) -> None:
 	"""
 	Take a numpy array of embeddings and store them in a local vector db.
 	"""
-	
-
