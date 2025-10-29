@@ -3,14 +3,12 @@
 # since I want a fully local, free solution, the best option is Hugging Face / Sentence Transformers.
 
 import logging
-import numpy as np
 from typing import List
 import os
-import faiss
 
 logger = logging.getLogger(__name__)
 
-def generate_embeddings(chunks: list[str]) -> np.ndarray:
+def generate_embeddings(chunks: list[str]) -> "np.ndarray":
 	"""
 	take a list of strings(chunks), generate an embedding and return it.
 	returns np.ndarray. (numpy array)
@@ -37,7 +35,11 @@ def generate_embeddings(chunks: list[str]) -> np.ndarray:
 
 # then next we will store these embeddings in a vector db. vector db is not only responsible for storing embeddings, but it also does the nearest neighbor search. As an example FAISS uses optimized C++ routines + GPU acceleration for instant nearest neighbor search. We could write this ourselves but it would be less efficient. Nearest neighbour search is so that we don't pass all our embeddings to the model(it will make it less efficient, or we will just break the token limit). This is called top_k: top_k = number of most relevant embeddings to retrieve.
 
-def store_embeddings(embeddings: np.ndarray, faiss_index_path="index.faiss") -> None:
+def md5_to_int(md5_str: str) -> int:
+	# Convert MD5 hex digest to integer
+	return int(md5_str, 16)  # FAISS accepts int64 IDs
+
+def store_embeddings(embeddings: "np.ndarray", faiss_index_path="index.faiss") -> None:
 	"""
 	Stores embeddings in a FAISS index and writes corresponding metadata entries to a JSONL file.
 
@@ -48,16 +50,19 @@ def store_embeddings(embeddings: np.ndarray, faiss_index_path="index.faiss") -> 
 		faiss_path: path to FAISS index file
 		source: optional string for source info (e.g., filename)
 	"""
+	if embeddings is None or len(embeddings) == 0:
+		return
+
+	import faiss
+	import numpy as np
+
 	# get the dimension(length) of each embedding vector. FAISS needs this for creating the vector. gives the embedding dimension, e.g.: 384 for all-MiniLM-L6-v2, 1536 for text-embedding-3-small, 3072 for text-embedding-3-large 
 	dim = embeddings.shape[1]
 
-	# we read the existing index if it exists to add to it. Currently the implementation is not so clear to me, but assuming we will be adding embeddings say because we have a new file or a file has changed, we want to read the current index into memory and add embeddings to it. i am not sure how deleting old parts would work.
-	if os.path.exists(faiss_path):
-		index = faiss.read_index(faiss_path)
+	# we read the existing index if it exists to add to it. Currently the implementation is not so clear to me, but assuming we will be adding embeddings say because we have a new file or a file has changed, we want to read the current index into memory and add embeddings to it. i am not sure how deleting old parts would work. We create an indexidmap index to be able to assign ids to each index instead of arbitrary ids.
+	if os.path.exists(faiss_index_path):
+		index = faiss.read_index(faiss_index_path)
 	else:
-		index = faiss.IndexFlatL2(dim)
+		index = faiss.IndexIDMap(index)
 
-	
-
-
-
+	faiss.write_index(index, faiss_index_path)
