@@ -2,6 +2,7 @@ import unittest
 import tempfile
 from pathlib import Path
 from scan_and_hash import retrieve_md_filenames, hash_md_file
+from main import IGNORE_DIRS
 
 class TestRetrieveMdFilenames(unittest.TestCase):
 	def setUp(self):
@@ -28,7 +29,7 @@ class TestRetrieveMdFilenames(unittest.TestCase):
 		self.temp_dir.cleanup()
 
 	def test_retrieve_md_filenames(self):
-		md_files = retrieve_md_filenames(self.test_base)
+		md_files = retrieve_md_filenames(self.test_base, IGNORE_DIRS)
 		md_files_set = set(f.name for f in md_files)
 
 		# assert we found the correct markdown files

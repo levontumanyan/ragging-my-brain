@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from pathlib import Path
-from scan_and_hash import read_md_file
+from read_and_chunk import read_md_files
 
 class TestReadingFiles(unittest.TestCase):
 	def setUp(self):
@@ -33,18 +33,20 @@ class TestReadingFiles(unittest.TestCase):
 				pass
 
 	def test_read_normal_file(self):
-		content = read_md_file(self.normal_path)
-		self.assertTrue(content.startswith("# Hello World"))
-		self.assertIn("This is a test.", content)
+		content = read_md_files([self.normal_path])
+		self.assertEqual(len(content), 1)
+		self.assertTrue(content[0].startswith("# Hello World"))
+		self.assertIn("This is a test.", content[0])
 
 	def test_read_empty_file(self):
-		content = read_md_file(self.empty_path)
-		self.assertEqual(content, "")
+		content = read_md_files([self.empty_path])
+		self.assertEqual(len(content), 1)
+		self.assertEqual(content[0], "")
 
 	def test_read_nonexistent_file(self):
 		with self.assertLogs(level='ERROR') as log:
-			content = read_md_file(self.fake_path)
-			self.assertEqual(content, "")
+			content = read_md_files([self.fake_path])
+			self.assertEqual(content, [])
 			self.assertIn("Error reading", log.output[0])
 
 if __name__ == "__main__":
