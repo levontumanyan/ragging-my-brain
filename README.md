@@ -10,6 +10,7 @@
 - ⚠️ don't read all markdowns into an array but switch to a generator pattern or stream processing.
 - Currently using simple fixed-size chunks (you can later use smarter ones like nltk, langchain.text_splitter, or tiktoken).
 - chunking size and overlap should be more robust. maybe repeat it twice in chunk_text and chunk_all_texts then modify from main.
+- look into lazy imports (faiss, numpy, from sentence_transformers import SentenceTransformer)
 
 # terms
 
@@ -31,8 +32,9 @@ Rag creation pipeline workflow:
 
 1. find all the text files you need for your model to check.
 2. chunk them accordingly.
-3. Take the text chunks and embed them using a model.
-4. store the embeddings in a vector store (FAISS, chromadb, etc.)
+3. hash the chunk (md5). store the chunk in a metadata store(jsonl).
+4. Take the text chunks and embed them using a model.
+5. store the embeddings in a vector store (FAISS, chromadb, etc.)
 
 This is what RAG+LLM question flow looks like:
 
@@ -85,7 +87,7 @@ Metadata store is a crucial part of the workflow. Its main job is to convert an 
 
 ## structure(jsonl)
 
-{"id": 0, "hash": "abcd1234...", "text": "Armenia is a...", "source": "docs/armenia.txt"}
+{"id": chunk_hash_to_int, "hash": "abcd1234...", "text": "Armenia is a...", "source": "docs/armenia.txt"}
 
 # Embed & store
 
@@ -100,7 +102,6 @@ Metadata store is a crucial part of the workflow. Its main job is to convert an 
 # Make it dynamic
 
 - Add a file watcher (e.g., watchdog) to re-embed or update files automatically when Markdown files change.
-
 
 # dir structure long term
 
