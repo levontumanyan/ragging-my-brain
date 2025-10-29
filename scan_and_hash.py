@@ -40,6 +40,14 @@ def create_metadata_file(data_dir: Path) -> Path:
 
 	return metadata_file
 
+# load metadata.json into a dict and return it
+def load_metadata_json(metadata_file) -> dict:
+	with open(metadata_file, "r", encoding="utf-8") as f:
+		metadata = json.load(f)  # metadata is now a Python dict
+		logger.info(f"Loaded metadata.json into a dict")
+
+	return metadata
+
 # say at this point
 # for a file from markdown files list. i hash it and i check the metadata.json entry. if it's the same then we good. otherwise we update the entry and will make sure this file is processed again.
 
@@ -53,14 +61,6 @@ def hash_md_file(md_file: Path) -> str:
 			h.update(chunk)
 
 	return h.hexdigest()
-
-# load metadata.json into a dict and return it
-def load_metadata_json(metadata_file) -> dict:
-	with open(metadata_file, "r", encoding="utf-8") as f:
-		metadata = json.load(f)  # metadata is now a Python dict
-		logger.info(f"Loaded metadata.json into a dict")
-
-	return metadata
 
 # for a markdown file receive the path, it's current hash and the metadata dict. compare current hash with the old one(if exists) and if hash has changed or it is a new file update the dict and return True
 def needs_processing(md_relative_path: str, current_md_hash: str, metadata: dict) -> bool:
