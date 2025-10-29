@@ -37,7 +37,7 @@ def create_metadata_file(data_dir: Path) -> Path:
 		logger.info(f"Metadata file doesn't exist")
 		metadata_file.write_text("{}")  # create an empty JSON file
 		logger.info(f"{metadata_file} created with empty json.")
-	
+
 	return metadata_file
 
 # say at this point
