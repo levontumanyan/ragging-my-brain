@@ -1,6 +1,8 @@
 from pathlib import Path
 import logging
 from typing import List
+import json
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -50,5 +52,28 @@ def chunk_all_texts(texts: list[str]) -> list[str]:
 	logger.info(f"Created {len(all_chunks)} chunks.")
 
 	return all_chunks
+
+# take all the chunks, these are already the ones that need to be done because a file's hash has been changed. take an individual chunks. pass a jsonl file.
+def hash_chunk(chunk: str) -> str:
+	return hashlib.md5(chunk.encode("utf-8")).hexdigest()
+
+def generate_chunks_metadata(all_chunks: list[str]) -> list[dict]:
+	metadata = []
+	for chunk in all_chunks:
+		chunk_hash = hash_chunk(chunk)
+		metadata.append({
+			"chunk": chunk,
+			"hash": chunk_hash
+		})
+	return metadata
+
+def store_chunks_metadata(metadata: list[dict], metadata_jsonl_file):
+	"""
+	metadata: is a list of dictionaries(each a json like dict)
+	metadata_jsonl_file: jsonl file to write metadata into
+	"""
+	with open(metadata_jsonl_file, "w", encoding="utf-8"):
+		for entry in metadata:
+			metadata_jsonl_file.write(json.dumps(entry) + "\n")
 
 # this one will be for chunking content
