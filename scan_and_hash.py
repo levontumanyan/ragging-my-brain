@@ -30,12 +30,13 @@ def create_data_dir() -> Path:
 	return data_dir
 
 # this is where we store the hashes of files, in order to not run the pipeline on those files for which the content hasn't changed.
-def create_metadata_file(data_dir: Path) -> Path:
-	metadata_file = data_dir / "metadata.json"
+def create_metadata_file(data_dir: Path, name: str) -> Path:
+	metadata_file = data_dir / name
 
 	if not metadata_file.exists():
 		logger.info(f"Metadata file doesn't exist")
-		metadata_file.write_text("{}")  # create an empty JSON file
+		# create an empty JSON file
+		metadata_file.write_text("{}")
 		logger.info(f"{metadata_file} created with empty json.")
 
 	return metadata_file
