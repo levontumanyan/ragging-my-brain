@@ -67,7 +67,7 @@ def generate_chunks_metadata(all_chunks: list[str]) -> list[dict]:
 		})
 	return metadata
 
-def store_chunks_metadata(metadata: list[dict], metadata_jsonl_file):
+def store_chunks_metadata(metadata: list[dict], metadata_jsonl_file: Path):
 	"""
 	metadata: is a list of dictionaries(each a json like dict)
 	metadata_jsonl_file: jsonl file to write metadata into

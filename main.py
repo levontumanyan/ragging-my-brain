@@ -15,7 +15,7 @@ from scan_and_hash import (
 )
 
 from read_and_chunk import (
-	read_md_files,
+	read_files,
 	chunk_all_texts
 )
 
@@ -78,10 +78,12 @@ def main():
 		return
 
 	# read md files here
-	contents = read_md_files(mds_to_process)
+	contents = read_files(mds_to_process)
 	
 	# chunk all the mds
 	all_chunks = chunk_all_texts(contents)
+
+	print(all_chunks[:10])
 
 	# return embeddings
 	#embeddings = generate_embeddings(all_chunks)
