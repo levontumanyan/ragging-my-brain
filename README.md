@@ -6,6 +6,7 @@
 
 # improvements
 
+- better ids for chunks. for now it is some workaround of hashing and masking to keep it under int64 limits.
 - move `index.faiss` to data directory
 - understand the logging output when for some reason there are supposed to be 100s of embeddings but it shows 1 on subsequent runs, but on the first run it is correct.
 - test the correct one to one mapping of the ids to embeddings.
