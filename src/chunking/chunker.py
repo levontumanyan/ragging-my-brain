@@ -46,10 +46,12 @@ def chunk_file(knowledge_file: Path) -> list[Path]:
 
 def chunk_files_and_generate_metadata(knowledge_files: list[Path]) -> list[dict]:
 	all_metadata = []
+	num_of_files = 0
 
 	for file_path in knowledge_files:
 		all_metadata.extend(chunk_file(file_path))
+		num_of_files += 1
 
-	logger.info(f"Generated {len(all_metadata)} chunks with metadata.")
+	logger.info(f"Generated {len(all_metadata)} chunks with metadata from {len(knowledge_files)} files.")
 
 	return all_metadata

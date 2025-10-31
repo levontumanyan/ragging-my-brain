@@ -1,7 +1,13 @@
-# project to create a rag pipeline for my docs
+# RAG pipeline
+
+`python main.py [--debug]` - to run the rag pipeline.
+
+`.env` - includes configs to modify the location of knowledge base and ignore dirs.
 
 # improvements
 
+- move `index.faiss` to data directory
+- understand the logging output when for some reason there are supposed to be 100s of embeddings but it shows 1 on subsequent runs, but on the first run it is correct.
 - test the correct one to one mapping of the ids to embeddings.
 - capture kill signal
 - change from vector store to graph store. [text](#light-rag)

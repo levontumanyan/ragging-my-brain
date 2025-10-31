@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import argparse
 
 from src.utils.io_utils import (
 	create_data_dir,
@@ -35,13 +36,17 @@ from src.embedding.embedder import (
 
 from src.vectorstore.faiss_store import (
 	load_or_create_faiss_index,
-	store_embeddings,
-	delete_embeddings
+	add_to_index,
+	remove_from_faiss_index
 )
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+args = parser.parse_args()
 
 def setup_logger():
 	logging.basicConfig(
-		level=logging.INFO,
+		level=logging.DEBUG if args.debug else logging.INFO,
 		format="%(asctime)s [%(levelname)s] %(message)s",
 		datefmt="%Y-%m-%d %H:%M:%S",
 	)
@@ -58,7 +63,7 @@ def main():
 	# start logger
 	setup_logger()
 
-	logger.info('Rag pipeline started')
+	logger.info("Rag pipeline started")
 
 	# create a path object to data dir
 	data_dir = create_data_dir()
@@ -135,12 +140,12 @@ def main():
 
 	# add new embeddings to the vector store.
 	if embeddings is not None:
-		store_embeddings(ids, embeddings, index)
+		add_to_index(ids, embeddings, index)
 
 	if entries_to_delete:
 		# get the list of ids to delete
 		ids_to_delete = np.array([entry['id'] for entry in entries_to_delete], dtype=np.int64)
-		delete_embeddings(ids_to_delete, index, "index.faiss")
+		remove_from_faiss_index(ids_to_delete, index, "index.faiss")
 
 	# save the new metadata store and overwrite the old one.
 	save_jsonl(current_metadata_store, metadata_store_file)

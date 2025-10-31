@@ -27,6 +27,7 @@ def generate_embeddings(chunks: list[str], model) -> "np.ndarray":
 	embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=True)
 
 	# embeddings is now a NumPy array: shape (num_chunks, embedding_dim)
+	logger.info(f"Created embeddings for {len(chunks)}.")
 	logger.info(f"Shape of embeddings: {embeddings.shape}")
 
 	return embeddings

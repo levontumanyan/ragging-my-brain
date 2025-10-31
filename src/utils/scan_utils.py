@@ -16,4 +16,5 @@ def retrieve_md_filenames(base_dir: Path, ignore_dirs: set) -> list[Path]:
 			if file.endswith(".md"):
 				md_files.append(Path(root) / file)
 
+	logger.info(f"Scanned {len(md_files)} knowledge files.")
 	return md_files

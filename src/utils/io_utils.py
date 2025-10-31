@@ -27,7 +27,7 @@ def read_file(file: Path) -> str:
 	Read a markdown file and return its content as a string.
 	"""
 	content = ""
-	logger.info(f"Starting to read file, received {file.name} file to read.")
+	logger.debug(f"Starting to read file, received {file.name} file to read.")
 
 	try:
 		with file.open("r", encoding="utf-8") as f:
