@@ -119,6 +119,7 @@ def main():
 	embeddings = None
 	ids = None
 	index = None
+	faiss_index_path = data_dir / "index.faiss"
 
 	# only create embeddings if there are new entries
 	if entries_to_add:
@@ -136,16 +137,16 @@ def main():
 	# only load index if we need to add or delete entries
 	if entries_to_add or entries_to_delete:
 		# default dim if embeddings missing
-		index = load_or_create_faiss_index(data_dir, "index.faiss", dim or 384,)
+		index = load_or_create_faiss_index(faiss_index_path, dim or 384,)
 
 	# add new embeddings to the vector store.
 	if embeddings is not None:
-		add_to_index(ids, embeddings, index)
+		add_to_index(ids, embeddings, index, faiss_index_path)
 
 	if entries_to_delete:
 		# get the list of ids to delete
 		ids_to_delete = np.array([entry['id'] for entry in entries_to_delete], dtype=np.int64)
-		remove_from_faiss_index(ids_to_delete, index, "index.faiss")
+		remove_from_faiss_index(ids_to_delete, index, faiss_index_path)
 
 	# save the new metadata store and overwrite the old one. only save it at this point in case if embedding or writing to index goes wrong we still have old chunks metadata.
 	save_jsonl(current_metadata_store, metadata_store_file)

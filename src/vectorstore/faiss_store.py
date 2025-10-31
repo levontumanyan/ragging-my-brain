@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def load_or_create_faiss_index(data_dir: Path, faiss_index_name: str, dim: int):
+def load_or_create_faiss_index(faiss_index_path: Path, dim: int):
 	"""
 		Load a FAISS index from disk if it exists; otherwise, create a new flat L2 index
 		wrapped in an ID map and save it.
@@ -16,8 +16,6 @@ def load_or_create_faiss_index(data_dir: Path, faiss_index_name: str, dim: int):
 		Returns:
 			faiss.Index: The loaded or newly created FAISS index.
 	"""
-	faiss_index_path = data_dir / faiss_index_name
-
 	if os.path.exists(faiss_index_path):
 		index = faiss.read_index(str(faiss_index_path))
 		logger.info(f"Index already exists, loading {faiss_index_path}")
@@ -34,7 +32,7 @@ def load_or_create_faiss_index(data_dir: Path, faiss_index_name: str, dim: int):
 
 # we are gonna use IndexIDMap. this is so that we can remove stale chunks. https://github.com/facebookresearch/faiss/wiki/Pre--and-post-processing
 
-def add_to_index(ids: "np.ndarray", embeddings: "np.ndarray", index) -> None:
+def add_to_index(ids: "np.ndarray", embeddings: "np.ndarray", index, faiss_index_path: Path) -> None:
 	"""
 	Stores embeddings in a FAISS index and writes corresponding metadata entries to a JSONL file.
 
@@ -57,11 +55,10 @@ def add_to_index(ids: "np.ndarray", embeddings: "np.ndarray", index) -> None:
 	index.add_with_ids(embeddings, ids)
 	logger.info(f"Stored {num_to_add} embeddings to the index.")
 	logger.info(f"Index size after adding: {index.ntotal}")
+	faiss.write_index(index, str(faiss_index_path))
+	logger.info(f"Wrote updated FAISS index to {faiss_index_path}.")
 
-def remove_from_faiss_index(ids: "np.array", index, faiss_index_path) -> None:
-	"""
-	Accepts the faiss index(vector store) and list of dicts which are metadata on the chunks to be deleted.
-	"""
+def remove_from_faiss_index(ids: "np.array", index, faiss_index_path: Path) -> None:
 	"""
 		Delete embeddings from a FAISS index by their IDs and persist the updated index.
 
@@ -86,5 +83,5 @@ def remove_from_faiss_index(ids: "np.array", index, faiss_index_path) -> None:
 	logger.info(f"Deleted {num_to_delete} embeddings from the FAISS index.")
 	logger.info(f"Index size after deletion: {index.ntotal}")
 
-	faiss.write_index(index, faiss_index_path)
-	logger.info(f"Wrote updated FAISS index to {faiss_index_path}.")
+	faiss.write_index(index, str(faiss_index_path))
+	logger.info(f"Wrote updated FAISS index to {str(faiss_index_path)}.")
