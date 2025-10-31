@@ -110,10 +110,13 @@ def main():
 
 	entries_to_delete, entries_to_add = compare_old_new_metadata(old_metadata, current_metadata_store)
 
-	# create a list of texts to embed then add to the faiss index, if there is something to add.
-	if not entries_to_add:
-		logger.info("No new entries to add — skipping embedding and index update.")
-	else:
+	# initialize variables
+	embeddings = None
+	ids = None
+	index = None
+
+	# only create embeddings if there are new entries
+	if entries_to_add:
 		import numpy as np
 		# create the embedding model
 		model = create_embedding_model("all-MiniLM-L6-v2")
@@ -122,28 +125,25 @@ def main():
 		ids = np.array([e["id"] for e in entries_to_add], dtype=np.int64)
 		embeddings = generate_embeddings(chunks, model)
 		dim = embeddings.shape[1]
+	else:
+		logger.info("No new entries to add — skipping embedding and index update.")
 
-	# probably better ways to do... too much repetition i feel like.
-	# for now check if we need to add anything or delete anything. if that is the case load or create an index.
+	# only load index if we need to add or delete entries
 	if entries_to_add or entries_to_delete:
 		# default dim if embeddings missing
 		index = load_or_create_faiss_index("index.faiss", dim or 384,)
 
-	# if there are new embeddings then we add it to the vector store.
+	# add new embeddings to the vector store.
 	if embeddings is not None:
 		store_embeddings(ids, embeddings, index)
 
-	# get the list of ids to delete
-	ids_to_delete = np.array([entry['id'] for entry in entries_to_delete], dtype=np.int64)
-
-	if ids_to_delete is not None:
-		# delete the old ids/chunks from the vector store (faiss)
+	if entries_to_delete:
+		# get the list of ids to delete
+		ids_to_delete = np.array([entry['id'] for entry in entries_to_delete], dtype=np.int64)
 		delete_embeddings(ids_to_delete, index, "index.faiss")
 
 	# save the new metadata store and overwrite the old one.
 	save_jsonl(current_metadata_store, metadata_store_file)
-
-	# add saving the metadata store to the file.
 
 	# end timer, count relapsed time
 	end_time = time.perf_counter()
