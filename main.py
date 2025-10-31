@@ -4,29 +4,39 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-from scan_and_hash import (
+from src.utils.io_utils import (
 	create_data_dir,
 	create_metadata_file,
-	load_metadata_json,
-	retrieve_md_filenames,
-	hash_md_file,
+	read_file,
+	json_to_dict,
+	save_dict_to_json,
+	load_jsonl_metadata,
+	save_jsonl
+)
+
+from src.utils.scan_utils import (
+	retrieve_md_filenames
+)
+
+from src.utils.hash_utils import (
+	hash_file,
 	needs_processing,
-	save_metadata_json
+	compare_old_new_metadata
 )
 
-from read_and_chunk import (
-	load_old_metadata,
-	compare_old_new_metadata,
-	chunk_files_and_generate_metadata,
-	store_chunks_metadata
+from src.chunking.chunker import (
+	chunk_files_and_generate_metadata
 )
 
-from embed_and_store import (
-	delete_old_ids,
+from src.embedding.embedder import (
 	create_embedding_model,
-	generate_embeddings,
+	generate_embeddings
+)
+
+from src.vectorstore.faiss_store import (
 	load_or_create_faiss_index,
-	store_embeddings
+	store_embeddings,
+	delete_embeddings
 )
 
 def setup_logger():
@@ -56,8 +66,11 @@ def main():
 	# create or check metadata.json exists
 	metadata_file = create_metadata_file(data_dir, "metadata.json")
 
+	# read the metadata file
+	metadata_file_text = read_file(metadata_file)
+
 	# get the dict with metadata
-	metadata = load_metadata_json(metadata_file)
+	metadata = json_to_dict(metadata_file_text)
 
 	# create an array that will store files to be processed (hash has changed)
 	mds_to_process = []
@@ -66,7 +79,7 @@ def main():
 
 	for md_file in md_files:
 		# compute the md5 hash of the md file
-		current_md_hash = hash_md_file(md_file)
+		current_md_hash = hash_file(md_file)
 		
 		# this returns a path without the ../ as a string
 		md_relative_path = str(md_file.relative_to(KNOWLEDGE_BASE_DIR))
@@ -76,18 +89,20 @@ def main():
 
 	# write these hashes to the metadata.json file from metadata dict
 	try:
-		save_metadata_json(metadata_file, metadata)
-
+		save_dict_to_json(metadata_file, metadata)
 	except Exception as e:
 		logger.error(f"❌ Fatal error: {e}")
 		# stop main()
 		return
 
 	# create metadata store file path
-	metadata_store_file = create_metadata_file(data_dir, "metadata_store.json")
+	metadata_store_file = create_metadata_file(data_dir, "metadata_store.jsonl")
+
+	# read contents to a string
+	old_metada_text = read_file(metadata_store_file)
 
 	# list of dicts holding the old chunks metadata
-	old_metadata = load_old_metadata(metadata_store_file)
+	old_metadata = load_jsonl_metadata(old_metada_text)
 
 	# this will be the list of dicts of chunks and corresponding info.
 	# for now gonna pass this md_files later if there is a way maybe only mds_to_process.
@@ -111,7 +126,8 @@ def main():
 	# probably better ways to do... too much repetition i feel like.
 	# for now check if we need to add anything or delete anything. if that is the case load or create an index.
 	if entries_to_add or entries_to_delete:
-		index = load_or_create_faiss_index(dim or 384, "index.faiss")  # default dim if embeddings missing
+		# default dim if embeddings missing
+		index = load_or_create_faiss_index("index.faiss", dim or 384,)
 
 	# if there are new embeddings then we add it to the vector store.
 	if embeddings is not None:
@@ -122,10 +138,10 @@ def main():
 
 	if ids_to_delete is not None:
 		# delete the old ids/chunks from the vector store (faiss)
-		delete_old_ids(ids_to_delete, index, "index.faiss")
+		delete_embeddings(ids_to_delete, index, "index.faiss")
 
 	# save the new metadata store and overwrite the old one.
-	store_chunks_metadata(current_metadata_store, metadata_store_file)
+	save_jsonl(current_metadata_store, metadata_store_file)
 
 	# add saving the metadata store to the file.
 

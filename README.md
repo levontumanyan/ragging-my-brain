@@ -3,6 +3,7 @@
 # improvements
 
 - test the correct one to one mapping of the ids to embeddings.
+- capture kill signal
 - change from vector store to graph store. [text](#light-rag)
 - `metadata.json` can store other info, last updated timestamp, number of chunks of the file...
 - json logging
@@ -109,44 +110,60 @@ Metadata store is a crucial part of the workflow. Its main job is to convert an 
 rag_project/
 ├── README.md
 ├── requirements.txt
-├── metadata.json
 ├── .env
 ├── data/
-│   ├── docs/                  # Original markdown files
-│   ├── processed/             # Cleaned and chunked text (optional)
-│   └── embeddings/            # Saved embeddings/vectorstore
+│   ├── sources/
+│   ├── index/
+│   │   └── index.faiss
+│   ├── metadata/
+│   │   ├── metadata.json
+│   │   └── metadata_store.json
+│   └── embeddings/
+│       └── *.npy
 ├── src/
 │   ├── __init__.py
-│   ├── config.py              # Paths, constants, environment vars
+│
 │   ├── utils/
 │   │   ├── __init__.py
-│   │   ├── file_utils.py      # File scanning, hashing, metadata handling
-│   │   ├── text_utils.py      # Cleaning, normalization, markdown handling
-│   │   └── logging_utils.py   # JSON logging setup
-│   ├── ingest/
+│   │   ├── io_utils.py                # read_file(), create_data_dir(), load/save_metadata_json()
+│   │   ├── scan_and_hash.py           # retrieve_md_filenames(), hash_md_file(), compare_old_new_metadata()
+│   │   └── read_utils.py              # read_markdown(), read_pdf(), extract_text()
+│
+│   ├── chunking/
 │   │   ├── __init__.py
-│   │   ├── scanner.py         # Recursively find .md files
-│   │   └── chunker.py         # Split into overlapping chunks
-│   ├── embed/
+│   │   └── chunker.py                 # split_text_into_chunks(), chunk_files_and_generate_metadata()
+│
+│   ├── embedding/
 │   │   ├── __init__.py
-│   │   ├── model_loader.py    # Load embedding model (e.g. MiniLM)
-│   │   ├── embedder.py        # Create embeddings for chunks
-│   │   └── vector_store.py    # Save/retrieve from Chroma or FAISS
-│   ├── rag/
+│   │   ├── embedder.py                # create_embedding_model(), generate_embeddings()
+│   │   └── encoder_utils.py           # normalize_embeddings(), batch_encode(), etc.
+│
+│   ├── vectorstore/                   # formerly “store_embeddings”
 │   │   ├── __init__.py
-│   │   ├── retriever.py       # Retrieve top chunks (cosine similarity)
-│   │   └── pipeline.py        # End-to-end RAG orchestration
-│   ├── watcher/
+│   │   ├── faiss_store.py             # load_or_create_faiss_index(), store_embeddings(), delete_old_ids()
+│   │   └── vector_utils.py            # similarity_search(), add_to_index(), remove_from_index()
+│
+│   ├── retrieval/
 │   │   ├── __init__.py
-│   │   └── watcher.py         # Watchdog logic to re-embed on file change
-│   └── main.py                # Entry point: orchestrate everything
-├── tests/
-│   ├── __init__.py
-│   ├── test_chunker.py
-│   ├── test_embedder.py
-│   ├── test_vector_store.py
-│   └── test_retriever.py
-└── scripts/
-    ├── build_embeddings.py    # CLI tool to rebuild all embeddings
-    ├── run_rag_query.py       # CLI tool for testing queries
-    └── update_metadata.py     # Utility to rebuild metadata.json
+│   │   └── retriever.py               # search_faiss_index(), get_top_k_contexts()
+│
+│   ├── llm/
+│   │   ├── __init__.py
+│   │   └── query_llm.py               # build_prompt(), query_ollama()
+│
+│   └── pipeline/
+│       ├── __init__.py
+│       ├── build_pipeline.py          # full build flow
+│       └── query_pipeline.py          # full query flow
+│
+├── requirements.txt
+├── README.md
+└── tests/
+    ├── __init__.py
+    ├── test_utils.py
+    ├── test_chunking.py
+    ├── test_embedding.py
+    ├── test_vectorstore.py
+    ├── test_retrieval.py
+    ├── test_llm.py
+    └── test_pipeline.py
