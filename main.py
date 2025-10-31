@@ -15,12 +15,18 @@ from scan_and_hash import (
 )
 
 from read_and_chunk import (
-	read_files,
-	chunk_all_texts
+	load_old_metadata,
+	compare_old_new_metadata,
+	chunk_files_and_generate_metadata,
+	store_chunks_metadata
 )
 
 from embed_and_store import (
-	generate_embeddings
+	delete_old_ids,
+	create_embedding_model,
+	generate_embeddings,
+	load_or_create_faiss_index,
+	store_embeddings
 )
 
 def setup_logger():
@@ -48,7 +54,7 @@ def main():
 	data_dir = create_data_dir()
 
 	# create or check metadata.json exists
-	metadata_file = create_metadata_file(data_dir)
+	metadata_file = create_metadata_file(data_dir, "metadata.json")
 
 	# get the dict with metadata
 	metadata = load_metadata_json(metadata_file)
@@ -77,16 +83,51 @@ def main():
 		# stop main()
 		return
 
-	# read md files here
-	contents = read_files(mds_to_process)
-	
-	# chunk all the mds
-	all_chunks = chunk_all_texts(contents)
+	# create metadata store file path
+	metadata_store_file = create_metadata_file(data_dir, "metadata_store.json")
 
-	print(all_chunks[:10])
+	# list of dicts holding the old chunks metadata
+	old_metadata = load_old_metadata(metadata_store_file)
 
-	# return embeddings
-	#embeddings = generate_embeddings(all_chunks)
+	# this will be the list of dicts of chunks and corresponding info.
+	# for now gonna pass this md_files later if there is a way maybe only mds_to_process.
+	current_metadata_store = chunk_files_and_generate_metadata(md_files)
+
+	entries_to_delete, entries_to_add = compare_old_new_metadata(old_metadata, current_metadata_store)
+
+	# create a list of texts to embed then add to the faiss index, if there is something to add.
+	if not entries_to_add:
+		logger.info("No new entries to add — skipping embedding and index update.")
+	else:
+		import numpy as np
+		# create the embedding model
+		model = create_embedding_model("all-MiniLM-L6-v2")
+		chunks = [entry["chunk"] for entry in entries_to_add]
+		# in order to add the new embeddings let's first get their ids. we need to add to an index (id, embedding) tuples.
+		ids = np.array([e["id"] for e in entries_to_add], dtype=np.int64)
+		embeddings = generate_embeddings(chunks, model)
+		dim = embeddings.shape[1]
+
+	# probably better ways to do... too much repetition i feel like.
+	# for now check if we need to add anything or delete anything. if that is the case load or create an index.
+	if entries_to_add or entries_to_delete:
+		index = load_or_create_faiss_index(dim or 384, "index.faiss")  # default dim if embeddings missing
+
+	# if there are new embeddings then we add it to the vector store.
+	if embeddings is not None:
+		store_embeddings(ids, embeddings, index)
+
+	# get the list of ids to delete
+	ids_to_delete = np.array([entry['id'] for entry in entries_to_delete], dtype=np.int64)
+
+	if ids_to_delete is not None:
+		# delete the old ids/chunks from the vector store (faiss)
+		delete_old_ids(ids_to_delete, index, "index.faiss")
+
+	# save the new metadata store and overwrite the old one.
+	store_chunks_metadata(current_metadata_store, metadata_store_file)
+
+	# add saving the metadata store to the file.
 
 	# end timer, count relapsed time
 	end_time = time.perf_counter()
