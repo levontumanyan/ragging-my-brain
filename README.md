@@ -2,6 +2,7 @@
 
 # improvements
 
+- test the correct one to one mapping of the ids to embeddings.
 - change from vector store to graph store. [text](#light-rag)
 - `metadata.json` can store other info, last updated timestamp, number of chunks of the file...
 - json logging
