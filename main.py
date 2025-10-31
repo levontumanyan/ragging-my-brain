@@ -136,7 +136,7 @@ def main():
 	# only load index if we need to add or delete entries
 	if entries_to_add or entries_to_delete:
 		# default dim if embeddings missing
-		index = load_or_create_faiss_index("index.faiss", dim or 384,)
+		index = load_or_create_faiss_index(data_dir, "index.faiss", dim or 384,)
 
 	# add new embeddings to the vector store.
 	if embeddings is not None:
@@ -147,7 +147,7 @@ def main():
 		ids_to_delete = np.array([entry['id'] for entry in entries_to_delete], dtype=np.int64)
 		remove_from_faiss_index(ids_to_delete, index, "index.faiss")
 
-	# save the new metadata store and overwrite the old one.
+	# save the new metadata store and overwrite the old one. only save it at this point in case if embedding or writing to index goes wrong we still have old chunks metadata.
 	save_jsonl(current_metadata_store, metadata_store_file)
 
 	# end timer, count relapsed time

@@ -1,9 +1,10 @@
+from pathlib import Path
 import faiss, os, numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
 
-def load_or_create_faiss_index(faiss_index_path: str, dim: int):
+def load_or_create_faiss_index(data_dir: Path, faiss_index_name: str, dim: int):
 	"""
 		Load a FAISS index from disk if it exists; otherwise, create a new flat L2 index
 		wrapped in an ID map and save it.
@@ -15,8 +16,10 @@ def load_or_create_faiss_index(faiss_index_path: str, dim: int):
 		Returns:
 			faiss.Index: The loaded or newly created FAISS index.
 	"""
+	faiss_index_path = data_dir / faiss_index_name
+
 	if os.path.exists(faiss_index_path):
-		index = faiss.read_index(faiss_index_path)
+		index = faiss.read_index(str(faiss_index_path))
 		logger.info(f"Index already exists, loading {faiss_index_path}")
 	else:
 		# Create a flat L2 index
@@ -25,8 +28,8 @@ def load_or_create_faiss_index(faiss_index_path: str, dim: int):
 		# Wrap it with ID map
 		index = faiss.IndexIDMap2(base_index)
 
-		faiss.write_index(index, faiss_index_path)
-		logger.info(f"Creating a new index. {faiss_index_path} with dimension: {dim}")
+		faiss.write_index(index, str(faiss_index_path))
+		logger.info(f"Creating a new index. {str(faiss_index_path)} with dimension: {dim}")
 	return index
 
 # we are gonna use IndexIDMap. this is so that we can remove stale chunks. https://github.com/facebookresearch/faiss/wiki/Pre--and-post-processing
