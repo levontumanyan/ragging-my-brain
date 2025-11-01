@@ -4,6 +4,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def persist_faiss_index(index, faiss_index_path: Path) -> None:
+	"""
+	Write the FAISS index to disk with logging.
+	"""
+	faiss.write_index(index, str(faiss_index_path))
+	logger.info(f"Wrote FAISS index to {faiss_index_path}")
+
 def load_or_create_faiss_index(faiss_index_path: Path, dim: int):
 	"""
 		Load a FAISS index from disk if it exists; otherwise, create a new flat L2 index
@@ -25,9 +32,9 @@ def load_or_create_faiss_index(faiss_index_path: Path, dim: int):
 
 		# Wrap it with ID map
 		index = faiss.IndexIDMap2(base_index)
-
-		faiss.write_index(index, str(faiss_index_path))
 		logger.info(f"Creating a new index. {str(faiss_index_path)} with dimension: {dim}")
+
+		persist_faiss_index(index, str(faiss_index_path))
 	return index
 
 # we are gonna use IndexIDMap. this is so that we can remove stale chunks. https://github.com/facebookresearch/faiss/wiki/Pre--and-post-processing
@@ -52,11 +59,12 @@ def add_to_index(ids: "np.ndarray", embeddings: "np.ndarray", index, faiss_index
 	# --- add to index ---
 	logger.info(f"Current index size before adding: {index.ntotal}")
 	num_to_add = ids.size
+	
 	index.add_with_ids(embeddings, ids)
 	logger.info(f"Stored {num_to_add} embeddings to the index.")
 	logger.info(f"Index size after adding: {index.ntotal}")
-	faiss.write_index(index, str(faiss_index_path))
-	logger.info(f"Wrote updated FAISS index to {faiss_index_path}.")
+	
+	persist_faiss_index(index, str(faiss_index_path))
 
 def remove_from_faiss_index(ids: "np.array", index, faiss_index_path: Path) -> None:
 	"""
@@ -83,5 +91,4 @@ def remove_from_faiss_index(ids: "np.array", index, faiss_index_path: Path) -> N
 	logger.info(f"Deleted {num_to_delete} embeddings from the FAISS index.")
 	logger.info(f"Index size after deletion: {index.ntotal}")
 
-	faiss.write_index(index, str(faiss_index_path))
-	logger.info(f"Wrote updated FAISS index to {str(faiss_index_path)}.")
+	persist_faiss_index(index, str(faiss_index_path))
