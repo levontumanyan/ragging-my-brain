@@ -5,7 +5,7 @@ import json
 logger = logging.getLogger(__name__)
 
 # create data dir
-def create_data_dir() -> Path:
+def ensure_data_dir() -> Path:
 	data_dir = Path("data/")
 	data_dir.mkdir(exist_ok=True)
 	return data_dir

@@ -2,7 +2,7 @@ import unittest
 import tempfile
 from pathlib import Path
 from scan_and_hash import retrieve_md_filenames, hash_md_file
-from main import IGNORE_DIRS
+from build import IGNORE_DIRS
 
 class TestRetrieveMdFilenames(unittest.TestCase):
 	def setUp(self):

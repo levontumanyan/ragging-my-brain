@@ -12,6 +12,9 @@ def create_embedding_model(name: str):
 	logger.info(f"Created embedding model: {name}")
 	return model
 
+def embed_text(text: str, model):
+	return generate_embeddings([text], model)
+
 def generate_embeddings(chunks: list[str], model) -> "np.ndarray":
 	"""
 	take a list of strings(chunks), generate an embedding and return it.

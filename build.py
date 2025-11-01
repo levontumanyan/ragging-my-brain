@@ -6,7 +6,7 @@ import os
 import argparse
 
 from src.utils.io_utils import (
-	create_data_dir,
+	ensure_data_dir,
 	create_metadata_file,
 	read_file,
 	json_to_dict,
@@ -40,33 +40,18 @@ from src.vectorstore.faiss_store import (
 	remove_from_faiss_index
 )
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-args = parser.parse_args()
-
-def setup_logger():
-	logging.basicConfig(
-		level=logging.DEBUG if args.debug else logging.INFO,
-		format="%(asctime)s [%(levelname)s] %(message)s",
-		datefmt="%Y-%m-%d %H:%M:%S",
-	)
-
 load_dotenv()
-logger = logging.getLogger(__name__)
 KNOWLEDGE_BASE_DIR = Path(os.getenv("KNOWLEDGE_BASE_DIR"))
 IGNORE_DIRS = set(os.getenv("IGNORE_DIRS", "").split(","))
 
-def main():
+def main(logger):
 	# start timer
 	start_time = time.perf_counter()
-
-	# start logger
-	setup_logger()
 
 	logger.info("Rag pipeline started")
 
 	# create a path object to data dir
-	data_dir = create_data_dir()
+	data_dir = ensure_data_dir()
 
 	# create or check metadata.json exists
 	metadata_file = create_metadata_file(data_dir, "metadata.json")

@@ -6,16 +6,16 @@
 
 # improvements
 
+- embedding model should be an env variable to share between build and query
+- store dim in a metadata store instead of just hardcoding it, since changing the model will break it.
+- currently mds_to_process is not used. change code so only those files that have changed are being considered.
 - better ids for chunks. for now it is some workaround of hashing and masking to keep it under int64 limits.
-- move `index.faiss` to data directory
-- understand the logging output when for some reason there are supposed to be 100s of embeddings but it shows 1 on subsequent runs, but on the first run it is correct.
 - test the correct one to one mapping of the ids to embeddings.
 - capture kill signal
 - change from vector store to graph store. [text](#light-rag)
 - `metadata.json` can store other info, last updated timestamp, number of chunks of the file...
 - json logging
 - more robust tests
-- hashing chunks, not just files. if a large file changes only a line, no need to reembed the whole file, just that chunk.
 - ⚠️ don't read all markdowns into an array but switch to a generator pattern or stream processing.
 - Currently using simple fixed-size chunks (you can later use smarter ones like nltk, langchain.text_splitter, or tiktoken).
 - chunking size and overlap should be more robust. maybe repeat it twice in chunk_text and chunk_all_texts then modify from main.
@@ -60,7 +60,6 @@ This is what RAG+LLM question flow looks like:
 
 # high level tasks
 
-- [x] create a virtual environment
 - [ ] freeze requirements and post
 
 # light rag
@@ -102,7 +101,6 @@ Metadata store is a crucial part of the workflow. Its main job is to convert an 
 
 - [x] Choose a local embedding model (fast + small, e.g. all-MiniLM-L6-v2 from sentence-transformers).
 - Store embeddings + metadata in a local vector store (Chroma, FAISS, or SQLite-based).
-  - [ ] `pip install faiss-cpu` - the gpu version is not supported on mac m series gpus it only supports cuda.
 
 - Persist this to disk so you don’t have to rebuild each time.
 
@@ -112,65 +110,14 @@ Metadata store is a crucial part of the workflow. Its main job is to convert an 
 
 - Add a file watcher (e.g., watchdog) to re-embed or update files automatically when Markdown files change.
 
-# dir structure long term
+# links
 
-rag_project/
-├── README.md
-├── requirements.txt
-├── .env
-├── data/
-│   ├── sources/
-│   ├── index/
-│   │   └── index.faiss
-│   ├── metadata/
-│   │   ├── metadata.json
-│   │   └── metadata_store.json
-│   └── embeddings/
-│       └── *.npy
-├── src/
-│   ├── __init__.py
-│
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── io_utils.py                # read_file(), create_data_dir(), load/save_metadata_json()
-│   │   ├── scan_and_hash.py           # retrieve_md_filenames(), hash_md_file(), compare_old_new_metadata()
-│   │   └── read_utils.py              # read_markdown(), read_pdf(), extract_text()
-│
-│   ├── chunking/
-│   │   ├── __init__.py
-│   │   └── chunker.py                 # split_text_into_chunks(), chunk_files_and_generate_metadata()
-│
-│   ├── embedding/
-│   │   ├── __init__.py
-│   │   ├── embedder.py                # create_embedding_model(), generate_embeddings()
-│   │   └── encoder_utils.py           # normalize_embeddings(), batch_encode(), etc.
-│
-│   ├── vectorstore/                   # formerly “store_embeddings”
-│   │   ├── __init__.py
-│   │   ├── faiss_store.py             # load_or_create_faiss_index(), store_embeddings(), delete_old_ids()
-│   │   └── vector_utils.py            # similarity_search(), add_to_index(), remove_from_index()
-│
-│   ├── retrieval/
-│   │   ├── __init__.py
-│   │   └── retriever.py               # search_faiss_index(), get_top_k_contexts()
-│
-│   ├── llm/
-│   │   ├── __init__.py
-│   │   └── query_llm.py               # build_prompt(), query_ollama()
-│
-│   └── pipeline/
-│       ├── __init__.py
-│       ├── build_pipeline.py          # full build flow
-│       └── query_pipeline.py          # full query flow
-│
-├── requirements.txt
-├── README.md
-└── tests/
-    ├── __init__.py
-    ├── test_utils.py
-    ├── test_chunking.py
-    ├── test_embedding.py
-    ├── test_vectorstore.py
-    ├── test_retrieval.py
-    ├── test_llm.py
-    └── test_pipeline.py
+[faiss getting started](https://github.com/facebookresearch/faiss/wiki/Getting-started)
+
+# done
+
+- [x] hashing chunks, not just files. if a large file changes only a line, no need to reembed the whole file, just that chunk.
+- [x] move `index.faiss` to data directory
+- [x] create a virtual environment
+- [x] `pip install faiss-cpu` - the gpu version is not supported on mac m series gpus it only supports cuda.
+- [x] understand the logging output when for some reason there are supposed to be 100s of embeddings but it shows 1 on subsequent runs, but on the first run it is correct. (Was a bug because i was creating a new index.)
