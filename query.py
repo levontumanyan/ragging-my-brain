@@ -31,7 +31,7 @@ def main(logger):
 	k = 10
 
 	# take a question, embed it with the same model as the index store uses.
-	query = "What is my email addresses?"
+	query = "protocols tcp icmp"
 	model = create_embedding_model("all-MiniLM-L6-v2")
 	vector = embed_text(query, model)
 
@@ -59,7 +59,7 @@ def main(logger):
 		if entry:
 			logger.info(f"#{rank} — ID: {idx}, distance: {dist:.4f}")
 			# print first 200 chars
-			logger.info(f"Text: {entry['chunk'][:200]}...")
+			logger.info(f"Text: \n {entry['chunk'][:200]}...")
 		else:
 			logger.info(f"#{rank} — ID: {idx} (no metadata found)")
 

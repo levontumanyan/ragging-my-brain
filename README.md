@@ -17,7 +17,6 @@
 - json logging
 - more robust tests
 - ⚠️ don't read all markdowns into an array but switch to a generator pattern or stream processing.
-- Currently using simple fixed-size chunks (you can later use smarter ones like nltk, langchain.text_splitter, or tiktoken).
 - chunking size and overlap should be more robust. maybe repeat it twice in chunk_text and chunk_all_texts then modify from main.
 - look into lazy imports (faiss, numpy, from sentence_transformers import SentenceTransformer)
 
@@ -75,6 +74,7 @@ This is what RAG+LLM question flow looks like:
 # Ingest & chunk your documents
 
 - [x] Recursively scans top directory for all .md files.
+- [ ] Currently using simple fixed-size chunks (you can later use smarter ones like nltk, langchain.text_splitter, or tiktoken).
 
 # Preprocessing the Markdown Content
 
