@@ -43,6 +43,7 @@ from src.vectorstore.faiss_store import (
 load_dotenv()
 KNOWLEDGE_BASE_DIR = Path(os.getenv("KNOWLEDGE_BASE_DIR"))
 IGNORE_DIRS = set(os.getenv("IGNORE_DIRS", "").split(","))
+model_name = os.getenv("MODEL")
 
 def main(logger):
 	# start timer
@@ -110,7 +111,7 @@ def main(logger):
 	if entries_to_add:
 		import numpy as np
 		# create the embedding model
-		model = create_embedding_model("all-MiniLM-L6-v2")
+		model = create_embedding_model(model_name)
 		chunks = [entry["chunk"] for entry in entries_to_add]
 		# in order to add the new embeddings let's first get their ids. we need to add to an index (id, embedding) tuples.
 		ids = np.array([e["id"] for e in entries_to_add], dtype=np.int64)

@@ -1,5 +1,7 @@
 import json
 import numpy as np
+from dotenv import load_dotenv
+import os
 
 from src.utils.io_utils import (
 	ensure_data_dir,
@@ -30,9 +32,13 @@ def main(logger):
 	dim = 384
 	k = 10
 
+	# this is for which model to use
+	load_dotenv()
+	model_name = os.getenv("MODEL")
+
 	# take a question, embed it with the same model as the index store uses.
 	query = "protocols tcp icmp"
-	model = create_embedding_model("all-MiniLM-L6-v2")
+	model = create_embedding_model(model_name)
 	vector = embed_text(query, model)
 
 	# load the local index

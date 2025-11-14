@@ -6,7 +6,6 @@
 
 # improvements
 
-- embedding model should be an env variable to share between build and query
 - store dim in a metadata store instead of just hardcoding it, since changing the model will break it.
 - currently mds_to_process is not used. change code so only those files that have changed are being considered.
 - better ids for chunks. for now it is some workaround of hashing and masking to keep it under int64 limits.
@@ -17,7 +16,6 @@
 - json logging
 - more robust tests
 - ⚠️ don't read all markdowns into an array but switch to a generator pattern or stream processing.
-- chunking size and overlap should be more robust. maybe repeat it twice in chunk_text and chunk_all_texts then modify from main.
 - look into lazy imports (faiss, numpy, from sentence_transformers import SentenceTransformer)
 
 # terms
@@ -121,3 +119,5 @@ Metadata store is a crucial part of the workflow. Its main job is to convert an 
 - [x] create a virtual environment
 - [x] `pip install faiss-cpu` - the gpu version is not supported on mac m series gpus it only supports cuda.
 - [x] understand the logging output when for some reason there are supposed to be 100s of embeddings but it shows 1 on subsequent runs, but on the first run it is correct. (Was a bug because i was creating a new index.)
+- [ ] embedding model should be an env variable to share between build and query
+- [ ] chunking better using libraries.
